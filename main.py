@@ -1,9 +1,12 @@
 import sys
+import os
 from vault import Vault
+from config import read_config, write_config
 
 args = sys.argv[1:]
-vault_path = ''
-vault = None
+config = read_config()
+vault_path = config['vault_path'] or ''
+vault = Vault(vault_path) if vault_path else None
 arg_idx = 0
 
 while arg_idx < len(args):
@@ -12,6 +15,11 @@ while arg_idx < len(args):
         arg_idx += 1
         vault = Vault(vault_path)
         print(vault.read())
+    elif args[arg_idx] == '--save':
+        if os.path.isdir(vault_path):
+            write_config('vault_path', vault_path)
+        else:
+            print("The vault must be specified before '--save'")
     elif args[arg_idx] == '--check':
         if vault:
             vault.check()

@@ -2,11 +2,13 @@ import sys
 import os
 from vault import Vault
 from config import read_config, write_config
+from rules import ExcessiveWhitespace
 
 args = sys.argv[1:]
 config = read_config()
 vault_path = config['vault_path'] or ''
 vault = Vault(vault_path) if vault_path else None
+rules = [ExcessiveWhitespace()]
 arg_idx = 0
 
 while arg_idx < len(args):
@@ -22,12 +24,12 @@ while arg_idx < len(args):
             print("The vault must be specified before '--save'")
     elif args[arg_idx] == '--check':
         if vault:
-            vault.check()
+            vault.check(rules)
         else:
             print("The vault must be specified before '--check'")
     elif args[arg_idx] == '--fix':
         if vault:
-            vault.fix()
+            vault.fix(rules)
         else:
             print("The vault must be specified before '--fix'")
     else:

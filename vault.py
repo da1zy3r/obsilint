@@ -1,12 +1,15 @@
 import os
 from collections import deque
+from rules import Rule
 
 class Vault:
-    def __init__(self, path):
+    def __init__(self, path: str):
+        """Initialize a vault with the specified path."""
         self.path = path.replace('/', '\\')
         self.files = []
 
-    def read(self):
+    def read(self) -> str:
+        """Read all files from the vault."""
         if not os.path.isdir(self.path):
             return "You must specify a directory of Obsidian vault after '-v'.\nGiven: {}".format(self.path)
         queue = deque(os.listdir(self.path))
@@ -23,13 +26,15 @@ class Vault:
                 print('File read:', file_path)
         return 'The files have been read successfully'
 
-    def check(self, rules):
+    def check(self, rules: list[Rule]) -> None:
+        """Check all vault files using the specified rules."""
         for file in self.files:
             for rule in rules:
                 rule.check(file)
         return None
 
-    def fix(self, rules):
+    def fix(self, rules: list[Rule]) -> None:
+        """Fix all vault files using the specified rules."""
         for file in self.files:
             for rule in rules:
                 rule.fix(file)

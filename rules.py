@@ -1,25 +1,34 @@
 import os
 
 class Rule:
-    def check(self, file):
-        pass
+    """Base class for checking and fixing rules."""
 
-    def fix(self, file):
-        pass
+    def check(self, file: str) -> None:
+        """Check the specified file for rule violations."""
+        return None
 
-    def get_lines(self, file):
+    def fix(self, file: str) -> None:
+        """Fix rule violations in the specified file."""
+        return None
+
+    def get_lines(self, file: str) -> list[str]:
+        """Read and return all lines from the specified file."""
         file_read = open(file, 'r', encoding='utf-8')
         lines = file_read.readlines()
         file_read.close()
         return lines
 
-    def write_lines(self, file, lines):
+    def write_lines(self, file: str, lines: list[str]) -> None:
+        """Write the specified lines to the file."""
         file_write = open(file, 'w', encoding='utf-8')
         file_write.writelines(lines)
         file_write.close()
+        return None
 
 class ExcessiveWhitespace(Rule):
-    def check(self, file):
+    """Rule for detecting and fixing excessive whitespace."""
+
+    def check(self, file: str) -> str | None:
         if not os.path.isfile(file):
             return 'The file {} does not exist'.format(file)
         lines = self.get_lines(file)
@@ -37,7 +46,7 @@ class ExcessiveWhitespace(Rule):
                     gap_found = False
         return None
 
-    def fix(self, file):
+    def fix(self, file: str) -> str | None:
         if not os.path.isfile(file):
             return 'The file {} does not exist'.format(file)
         lines = self.get_lines(file)

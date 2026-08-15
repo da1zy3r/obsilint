@@ -3,11 +3,11 @@ import os
 class Rule:
     """Base class for checking and fixing rules."""
 
-    def check(self, file: str) -> None:
+    def check(self, file: str, check_code_blocks: bool = False) -> None:
         """Check the specified file for rule violations."""
         return None
 
-    def fix(self, file: str) -> None:
+    def fix(self, file: str, check_code_blocks: bool = False) -> None:
         """Fix rule violations in the specified file."""
         return None
 
@@ -28,11 +28,16 @@ class Rule:
 class ExcessiveWhitespace(Rule):
     """Rule for detecting and fixing excessive whitespace."""
 
-    def check(self, file: str) -> str | None:
+    def check(self, file: str, check_code_blocks: bool = False) -> str | None:
         if not os.path.isfile(file):
             return 'The file {} does not exist'.format(file)
         lines = self.get_lines(file)
+        code_block_found = False
         for line_idx, line in enumerate(lines):
+            if line.startswith('```'):
+                code_block_found = not code_block_found
+            if code_block_found and not check_code_blocks:
+                continue
             gap_found = False
             gap_start = 0
             for ch_idx, ch in enumerate(line):
@@ -46,12 +51,18 @@ class ExcessiveWhitespace(Rule):
                     gap_found = False
         return None
 
-    def fix(self, file: str) -> str | None:
+    def fix(self, file: str, check_code_blocks: bool = False) -> str | None:
         if not os.path.isfile(file):
             return 'The file {} does not exist'.format(file)
         lines = self.get_lines(file)
         new_lines = []
+        code_block_found = False
         for line in lines:
+            if line.startswith('```'):
+                code_block_found = not code_block_found
+            if code_block_found and not check_code_blocks:
+                new_lines.append(line)
+                continue
             gap_found = False
             gap_start = 0
             new_line = ''

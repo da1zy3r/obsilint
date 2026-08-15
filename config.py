@@ -8,9 +8,10 @@ def read_config() -> dict[str, Any]:
     config_file.close()
     return config
 
-def write_config(key: str, value: str) -> None:
-    """Write a key-value pair to the TOML configuration file."""
+def write_config(pairs: dict[str, Any]) -> None:
+    """Write a key-value pairs to the TOML configuration file."""
     config_file = open('config.toml', 'w')
-    config_file.write("{} = '{}'\n".format(key, value))
+    for key, value in pairs.items():
+        config_file.write("{} = '{}'\n".format(key, value))
     config_file.close()
     return None

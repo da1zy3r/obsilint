@@ -1,1 +1,2 @@
 vault_path = ''
+ignored_paths = ['.obsidian']

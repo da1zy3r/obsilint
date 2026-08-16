@@ -38,6 +38,10 @@ class ExcessiveWhitespace(Rule):
                 code_block_found = not code_block_found
             if code_block_found and not check_code_blocks:
                 continue
+            if line.startswith('|') and line.endswith(('|', '|\n')) and len(line) > 1:
+                line = [i.strip() for i in line[1:].split('|')]
+                line = line[:-1]
+                line = ' '.join(line)
             gap_found = False
             gap_start = 0
             for ch_idx, ch in enumerate(line):
@@ -61,6 +65,9 @@ class ExcessiveWhitespace(Rule):
             if line.startswith('```'):
                 code_block_found = not code_block_found
             if code_block_found and not check_code_blocks:
+                new_lines.append(line)
+                continue
+            if line.startswith('|') and line.endswith(('|', '|\n')) and len(line) > 1:
                 new_lines.append(line)
                 continue
             gap_found = False

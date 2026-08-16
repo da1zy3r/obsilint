@@ -2,13 +2,13 @@ import sys
 import os
 from vault import Vault
 from config import read_config, write_config
-from rules import ExcessiveWhitespace
+from rules import ExcessiveWhitespace, TrailingBlankLines
 
 args = sys.argv[1:]
 config = read_config()
 vault_path = config['vault_path'] or ''
 vault = Vault(vault_path) if vault_path else None
-rules = [ExcessiveWhitespace()]
+rules = [ExcessiveWhitespace(), TrailingBlankLines()]
 ignored_paths = config['ignored_paths']
 arg_idx = 0
 

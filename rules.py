@@ -3,11 +3,11 @@ import os
 class Rule:
     """Base class for checking and fixing rules."""
 
-    def check(self, file: str, check_code_blocks: bool = False) -> None:
+    def check(self, file: str) -> None:
         """Check the specified file for rule violations."""
         return None
 
-    def fix(self, file: str, check_code_blocks: bool = False) -> None:
+    def fix(self, file: str) -> None:
         """Fix rule violations in the specified file."""
         return None
 
@@ -86,4 +86,31 @@ class ExcessiveWhitespace(Rule):
             new_line += line[last_added:]
             new_lines.append(new_line)
         self.write_lines(file, new_lines)
+        return None
+
+class TrailingBlankLines(Rule):
+    """Rule for detecting and fixing trailing blank lines."""
+
+    def check(self, file: str) -> str | None:
+        if not os.path.isfile(file):
+            return 'The file {} does not exist'.format(file)
+        lines = self.get_lines(file)
+        line_idx = len(lines) - 1
+        while line_idx >= 0 and lines[line_idx] == '\n':
+            line_idx -= 1
+        if line_idx != len(lines) - 1:
+            print('File {}, line {}'.format(file, line_idx + 1))
+            print('\tFound trailing blank line{}'.format('s' if line_idx < len(lines) - 2 else ''))
+        return None
+
+    def fix(self, file: str) -> str | None:
+        if not os.path.isfile(file):
+            return 'The file {} does not exist'.format(file)
+        lines = self.get_lines(file)
+        line_idx = len(lines) - 1
+        while line_idx >= 0 and lines[line_idx] == '\n':
+            line_idx -= 1
+        if line_idx != len(lines) - 1:
+            lines = lines[:line_idx + 1]
+        self.write_lines(file, lines)
         return None

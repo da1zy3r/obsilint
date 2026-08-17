@@ -12,10 +12,7 @@ class Vault:
         """Read all files from the vault except ignored paths."""
         if not os.path.isdir(self.path):
             return "You must specify a directory of Obsidian vault after '-v'.\nGiven: {}".format(self.path)
-        queue = deque(os.listdir(self.path))
-        for i in range(len(queue)):
-            file = queue.popleft()
-            queue.append(os.path.join(self.path, file))
+        queue = deque([os.path.join(self.path, file) for file in os.listdir(self.path)])
         while queue:
             file_path = queue.popleft()
             skip = False
@@ -28,10 +25,10 @@ class Vault:
             if os.path.isdir(file_path):
                 for file in os.listdir(file_path):
                     queue.append(os.path.join(file_path, file))
-            elif file_path.endswith('.md'):
+            elif os.path.isfile(file_path) and file_path.endswith('.md'):
                 self.files.append(file_path)
                 print('File read:', file_path)
-        return 'The files have been read successfully'
+        return '\nThe files have been read successfully\n'
 
     def check(self, rules: list[Rule]) -> None:
         """Check all vault files using the specified rules."""
@@ -43,8 +40,10 @@ class Vault:
     def fix(self, rules: list[Rule]) -> None:
         """Fix all vault files using the specified rules."""
         for file in self.files:
+            fixed = False
             for rule in rules:
-                rule.fix(file)
-            print('The file {} has been fixed'.format(file))
+                fixed += rule.fix(file)
+            if fixed:
+                print('The file {} has been fixed'.format(file))
         print('The files have been fixed successfully')
         return None

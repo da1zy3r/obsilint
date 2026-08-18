@@ -112,3 +112,43 @@ class TrailingBlankLines(Rule):
             self.write_lines(file, lines)
             return True
         return False
+
+class HorizontalRule(Rule):
+    """Rule for detecting and fixing non-standard horizontal rules."""
+
+    def check(self, file: str) -> str | None:
+        lines = self.get_lines(file)
+        for line_idx, line in enumerate(lines):
+            count = {'-': 0, '_': 0, '*': 0, ' ': 0, '\t': 0, '\n': 0}
+            for ch in line:
+                if ch in count.keys():
+                    count[ch] += 1
+                else:
+                    break
+            else:
+                if line != '---\n' and (count['-'] >= 3 or count['_'] >= 3 or count['*'] >= 3):
+                    print('File {}, line {}'.format(file, line_idx + 1))
+                    print("\tFound non-standard horizontal rule: '{}'".format(line.replace('\n', '')))
+        return None
+
+    def fix(self, file: str) -> bool:
+        lines = self.get_lines(file)
+        new_lines = []
+        lines_changed = False
+        for line in lines:
+            count = {'-': 0, '_': 0, '*': 0, ' ': 0, '\t': 0, '\n': 0}
+            for ch in line:
+                if ch in count.keys():
+                    count[ch] += 1
+                else:
+                    new_lines.append(line)
+                    break
+            else:
+                if line != '---\n' and (count['-'] >= 3 or count['_'] >= 3 or count['*'] >= 3):
+                    new_lines.append('---\n')
+                    lines_changed = True
+                else:
+                    new_lines.append(line)
+        if lines_changed:
+            self.write_lines(file, new_lines)
+        return lines_changed

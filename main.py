@@ -34,6 +34,11 @@ while arg_idx < len(args):
             vault.fix(rules)
         else:
             print("The vault must be specified before '--fix'")
+    elif args[arg_idx] == '-i' and arg_idx + 1 < len(args):
+        ignored_path = args[arg_idx + 1]
+        config['ignored_paths'].append(ignored_path)
+        write_config(config)
+        arg_idx += 1
     else:
         print('Unknown argument:', args[arg_idx])
     arg_idx += 1

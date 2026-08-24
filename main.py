@@ -34,11 +34,42 @@ while arg_idx < len(args):
             vault.fix(rules)
         else:
             print("The vault must be specified before '--fix'")
-    elif args[arg_idx] == '-i' and arg_idx + 1 < len(args):
-        ignored_path = args[arg_idx + 1]
-        config['ignored_paths'].append(ignored_path)
-        write_config(config)
-        arg_idx += 1
+    elif args[arg_idx] == '-i':
+        if arg_idx + 1 < len(args):
+            if args[arg_idx + 1] == '-d':
+                if arg_idx + 2 >= len(args):
+                    print("An index or path must be specified after '-d'")
+                elif args[arg_idx + 2].isdigit():
+                    del_path_idx = int(args[arg_idx + 2])
+                    if del_path_idx in range(len(ignored_paths)):
+                        del ignored_paths[del_path_idx]
+                        config['ignored_paths'] = ignored_paths
+                        write_config(config)
+                    else:
+                        print('Index is out of range')
+                else:
+                    if args[arg_idx + 2] in ignored_paths:
+                        for i in range(len(ignored_paths)):
+                            if ignored_paths[i] == args[arg_idx + 2]:
+                                del ignored_paths[i]
+                                break
+                        config['ignored_paths'] = ignored_paths
+                        write_config(config)
+                    else:
+                        print('Path is not in the list of ignored paths')
+                arg_idx += 2
+            else:
+                ignored_path = args[arg_idx + 1]
+                config['ignored_paths'].append(ignored_path)
+                write_config(config)
+                arg_idx += 1
+        else:
+            if len(ignored_paths) == 0:
+                print('The list of ignored paths is empty')
+            else:
+                print('Ignored paths:')
+                for ignored_path_idx, ignored_path in enumerate(ignored_paths):
+                    print('{}) {}'.format(ignored_path_idx, ignored_path))
     else:
         print('Unknown argument:', args[arg_idx])
     arg_idx += 1

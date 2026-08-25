@@ -1,3 +1,5 @@
+from typing import Literal
+
 class Rule:
     """Base class for checking and fixing rules."""
 
@@ -152,3 +154,39 @@ class HorizontalRule(Rule):
         if lines_changed:
             self.write_lines(file, new_lines)
         return lines_changed
+
+class BlankLinesAroundBlocks(Rule):
+    """Ensure blocks are surrounded by blank lines."""
+
+    def __init__(self, block: Literal['code', 'math']):
+        self.block = block
+        self.block_marker = {'code': '```', 'math': '$$'}[block]
+
+    def check(self, file: str) -> str | None:
+        lines = self.get_lines(file)
+        previous_line = None
+        block_start_found = False
+        block_start_idx = 0
+        block_end_found = False
+        for line_idx, line in enumerate(lines):
+            if block_start_found and block_end_found:
+                if previous_line != '\n':
+                    print('File {}, line {}'.format(file, block_start_idx))
+                    print('\tNo blank line before {} block'.format(self.block))
+                if line != '\n':
+                    print('File {}, line {}'.format(file, line_idx))
+                    print('\tNo blank line after {} block'.format(self.block))
+                block_start_found = block_end_found = False
+            if line.startswith(self.block_marker):
+                if block_start_found:
+                    block_end_found = True
+                    continue
+                else:
+                    block_start_found = True
+                    block_start_idx = line_idx + 1
+            if not block_start_found:
+                previous_line = line
+        return None
+
+    def fix(self, file: str) -> bool:
+        return False

@@ -25,6 +25,10 @@ class Rule:
         file_write.close()
         return None
 
+    def print_violation(self, file: str, line: int, message: str) -> None:
+        print('File {}, line {}'.format(file, line))
+        print('\t{}'.format(message))
+
 class ExcessiveWhitespace(Rule):
     """Rule for detecting and fixing excessive whitespace."""
 
@@ -48,8 +52,8 @@ class ExcessiveWhitespace(Rule):
                     gap_start = ch_idx
                 elif ch != ' ' and gap_found:
                     if ch_idx - gap_start > 1:
-                        print('File {}, line {}'.format(file, line_idx + 1))
-                        print('\tFound a gap with a length of {}'.format(ch_idx - gap_start))
+                        self.print_violation(file, line_idx + 1,
+                                             'Found a gap with a length of {}'.format(ch_idx - gap_start))
                     gap_found = False
         return None
 
@@ -97,8 +101,8 @@ class TrailingBlankLines(Rule):
         while line_idx >= 0 and lines[line_idx] == '\n':
             line_idx -= 1
         if line_idx != len(lines) - 1:
-            print('File {}, line {}'.format(file, line_idx + 1))
-            print('\tFound trailing blank line{}'.format('s' if line_idx < len(lines) - 2 else ''))
+            self.print_violation(file, line_idx + 1,
+                                 'Found trailing blank line{}'.format('s' if line_idx < len(lines) - 2 else ''))
         return None
 
     def fix(self, file: str) -> bool:
@@ -129,8 +133,8 @@ class HorizontalRule(Rule):
                     break
             else:
                 if line != '---\n' and (count['-'] >= 3 or count['_'] >= 3 or count['*'] >= 3):
-                    print('File {}, line {}'.format(file, line_idx + 1))
-                    print("\tFound non-standard horizontal rule: '{}'".format(line.replace('\n', '')))
+                    self.print_violation(file, line_idx + 1,
+                                         "Found non-standard horizontal rule: '{}'".format(line.replace('\n', '')))
         return None
 
     def fix(self, file: str) -> bool:
@@ -171,11 +175,11 @@ class BlankLinesAroundBlocks(Rule):
         for line_idx, line in enumerate(lines):
             if block_start_found and block_end_found:
                 if previous_line != '\n':
-                    print('File {}, line {}'.format(file, block_start_idx))
-                    print('\tNo blank line before {} block'.format(self.block))
+                    self.print_violation(file, block_start_idx,
+                                         'No blank line before {} block'.format(self.block))
                 if line != '\n':
-                    print('File {}, line {}'.format(file, line_idx))
-                    print('\tNo blank line after {} block'.format(self.block))
+                    self.print_violation(file, line_idx,
+                                         'No blank line after {} block'.format(self.block))
                 block_start_found = block_end_found = False
             if line.startswith(self.block_marker):
                 if block_start_found:

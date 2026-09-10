@@ -193,4 +193,30 @@ class BlankLinesAroundBlocks(Rule):
         return None
 
     def fix(self, file: str) -> bool:
-        return False
+        lines = self.get_lines(file)
+        new_lines = []
+        lines_changed = False
+        block_start_found = False
+        block_end_found = False
+        previous_line = '\n'
+        for line in lines:
+            if block_end_found:
+                block_end_found = False
+                if line != '\n':
+                    new_lines.append('\n')
+                    previous_line = '\n'
+                    lines_changed = True
+            if line.startswith(self.block_marker):
+                if block_start_found:
+                    block_start_found = False
+                    block_end_found = True
+                else:
+                    block_start_found = True
+                    if previous_line != '\n':
+                        new_lines.append('\n')
+                        lines_changed = True
+            new_lines.append(line)
+            previous_line = line
+        if lines_changed:
+            self.write_lines(file, new_lines)
+        return lines_changed

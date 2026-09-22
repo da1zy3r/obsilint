@@ -220,3 +220,39 @@ class BlankLinesAroundBlocks(Rule):
         if lines_changed:
             self.write_lines(file, new_lines)
         return lines_changed
+
+class TabsToSpaces(Rule):
+    """Replaces tabs with spaces."""
+
+    def check(self, file: str, check_code_blocks: bool = False) -> str | None:
+        lines = self.get_lines(file)
+        code_block_found = False
+        for line_idx, line in enumerate(lines):
+            if line.startswith('```'):
+                code_block_found = not code_block_found
+            if code_block_found and not check_code_blocks:
+                continue
+            if '\t' in line:
+                self.print_violation(file, line_idx + 1, 'Found tab in the line')
+        return None
+
+    def fix(self, file: str, check_code_blocks: bool = False) -> bool:
+        lines = self.get_lines(file)
+        code_block_found = False
+        new_lines = []
+        lines_changed = False
+        for line in lines:
+            if line.startswith('```'):
+                code_block_found = not code_block_found
+            if code_block_found and not check_code_blocks:
+                new_lines.append(line)
+                continue
+            if '\t' in line:
+                new_line = line.replace('\t', '    ')
+                new_lines.append(new_line)
+                lines_changed = True
+            else:
+                new_lines.append(line)
+        if lines_changed:
+            self.write_lines(file, new_lines)
+        return lines_changed

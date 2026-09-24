@@ -3,13 +3,13 @@ from typing import Literal
 class Rule:
     """Base class for checking and fixing rules."""
 
-    def check(self, file: str) -> None:
+    def check(self, file: str) -> int:
         """Check the specified file for rule violations."""
-        return None
+        return 0
 
-    def fix(self, file: str) -> None:
+    def fix(self, file: str) -> bool:
         """Fix rule violations in the specified file."""
-        return None
+        return False
 
     def get_lines(self, file: str) -> list[str]:
         """Read and return all lines from the specified file."""
@@ -27,12 +27,14 @@ class Rule:
 
     def print_violation(self, file: str, line: int, message: str) -> None:
         print('File {}, line {}'.format(file, line))
-        print('\t{}'.format(message))
+        print('\t{}\n'.format(message))
+        return None
 
 class ExcessiveWhitespace(Rule):
     """Rule for detecting and fixing excessive whitespace."""
 
-    def check(self, file: str, check_code_blocks: bool = False) -> str | None:
+    def check(self, file: str, check_code_blocks: bool = False) -> int:
+        violations_count = 0
         lines = self.get_lines(file)
         code_block_found = False
         for line_idx, line in enumerate(lines):
@@ -54,8 +56,9 @@ class ExcessiveWhitespace(Rule):
                     if ch_idx - gap_start > 1:
                         self.print_violation(file, line_idx + 1,
                                              'Found a gap with a length of {}'.format(ch_idx - gap_start))
+                        violations_count += 1
                     gap_found = False
-        return None
+        return violations_count
 
     def fix(self, file: str, check_code_blocks: bool = False) -> bool:
         lines = self.get_lines(file)
@@ -89,13 +92,13 @@ class ExcessiveWhitespace(Rule):
             new_lines.append(new_line)
         if lines_changed:
             self.write_lines(file, new_lines)
-            return True
-        return False
+        return lines_changed
 
 class TrailingBlankLines(Rule):
     """Rule for detecting and fixing trailing blank lines."""
 
-    def check(self, file: str) -> str | None:
+    def check(self, file: str) -> int:
+        violations_count = 0
         lines = self.get_lines(file)
         line_idx = len(lines) - 1
         while line_idx >= 0 and lines[line_idx] == '\n':
@@ -103,7 +106,8 @@ class TrailingBlankLines(Rule):
         if line_idx != len(lines) - 1:
             self.print_violation(file, line_idx + 1,
                                  'Found trailing blank line{}'.format('s' if line_idx < len(lines) - 2 else ''))
-        return None
+            violations_count += 1
+        return violations_count
 
     def fix(self, file: str) -> bool:
         lines = self.get_lines(file)
@@ -116,13 +120,13 @@ class TrailingBlankLines(Rule):
             lines_changed = True
         if lines_changed:
             self.write_lines(file, lines)
-            return True
-        return False
+        return lines_changed
 
 class HorizontalRule(Rule):
     """Rule for detecting and fixing non-standard horizontal rules."""
 
-    def check(self, file: str) -> str | None:
+    def check(self, file: str) -> int:
+        violations_count = 0
         lines = self.get_lines(file)
         for line_idx, line in enumerate(lines):
             count = {'-': 0, '_': 0, '*': 0, ' ': 0, '\t': 0, '\n': 0}
@@ -135,7 +139,8 @@ class HorizontalRule(Rule):
                 if line != '---\n' and (count['-'] >= 3 or count['_'] >= 3 or count['*'] >= 3):
                     self.print_violation(file, line_idx + 1,
                                          "Found non-standard horizontal rule: '{}'".format(line.replace('\n', '')))
-        return None
+                    violations_count += 1
+        return violations_count
 
     def fix(self, file: str) -> bool:
         lines = self.get_lines(file)
@@ -166,7 +171,8 @@ class BlankLinesAroundBlocks(Rule):
         self.block = block
         self.block_marker = {'code': '```', 'math': '$$'}[block]
 
-    def check(self, file: str) -> str | None:
+    def check(self, file: str) -> int:
+        violations_count = 0
         lines = self.get_lines(file)
         previous_line = None
         block_start_found = False
@@ -177,9 +183,11 @@ class BlankLinesAroundBlocks(Rule):
                 if previous_line != '\n' and block_start_idx != 1:
                     self.print_violation(file, block_start_idx,
                                          'No blank line before {} block'.format(self.block))
+                    violations_count += 1
                 if line != '\n':
                     self.print_violation(file, line_idx,
                                          'No blank line after {} block'.format(self.block))
+                    violations_count += 1
                 block_start_found = block_end_found = False
             if line.startswith(self.block_marker):
                 if block_start_found:
@@ -190,7 +198,7 @@ class BlankLinesAroundBlocks(Rule):
                     block_start_idx = line_idx + 1
             if not block_start_found:
                 previous_line = line
-        return None
+        return violations_count
 
     def fix(self, file: str) -> bool:
         lines = self.get_lines(file)
@@ -224,7 +232,8 @@ class BlankLinesAroundBlocks(Rule):
 class TabsToSpaces(Rule):
     """Replaces tabs with spaces."""
 
-    def check(self, file: str, check_code_blocks: bool = False) -> str | None:
+    def check(self, file: str, check_code_blocks: bool = False) -> int:
+        violations_count = 0
         lines = self.get_lines(file)
         code_block_found = False
         for line_idx, line in enumerate(lines):
@@ -234,7 +243,8 @@ class TabsToSpaces(Rule):
                 continue
             if '\t' in line:
                 self.print_violation(file, line_idx + 1, 'Found tab in the line')
-        return None
+                violations_count += 1
+        return violations_count
 
     def fix(self, file: str, check_code_blocks: bool = False) -> bool:
         lines = self.get_lines(file)

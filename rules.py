@@ -174,7 +174,7 @@ class BlankLinesAroundBlocks(Rule):
         block_end_found = False
         for line_idx, line in enumerate(lines):
             if block_start_found and block_end_found:
-                if previous_line != '\n':
+                if previous_line != '\n' and block_start_idx != 1:
                     self.print_violation(file, block_start_idx,
                                          'No blank line before {} block'.format(self.block))
                 if line != '\n':

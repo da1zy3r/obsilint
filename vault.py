@@ -29,12 +29,27 @@ class Vault:
                 self.files.append(file_path)
         return '\nThe files have been read successfully\n'
 
+    def get_lines(self, file: str) -> list[str]:
+        """Read and return all lines from the specified file."""
+        file_read = open(file, 'r', encoding='utf-8')
+        lines = file_read.readlines()
+        file_read.close()
+        return lines
+
+    def write_lines(self, file: str, lines: list[str]) -> None:
+        """Write the specified lines to the file."""
+        file_write = open(file, 'w', encoding='utf-8')
+        file_write.writelines(lines)
+        file_write.close()
+        return None
+
     def check(self, rules: list[Rule]) -> None:
         """Check all vault files using the specified rules."""
         violations_count = 0
         for file in self.files:
+            lines = self.get_lines(file)
             for rule in rules:
-                violations_count += rule.check(file)
+                violations_count += rule.check(file, lines)
         if violations_count == 0:
             print('No rule violations found')
         else:
@@ -46,9 +61,12 @@ class Vault:
         fixed_count = 0
         for file in self.files:
             fixed = False
+            lines = self.get_lines(file)
             for rule in rules:
-                fixed += rule.fix(file)
+                lines, was_fixed = rule.fix(lines)
+                fixed += was_fixed
             if fixed:
+                self.write_lines(file, lines)
                 print('Fixed: {}\n'.format(file))
                 fixed_count += 1
         if fixed_count == 0:

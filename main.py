@@ -21,6 +21,8 @@ rules = [ExcessiveWhitespace(),
          BlankLinesAroundBlocks('math'),
          TabsToSpaces()]
 ignored_paths = config['ignored_paths']
+if vault:
+    print(vault.read(ignored_paths))
 arg_idx = 0
 
 while arg_idx < len(args):
